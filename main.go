@@ -11,6 +11,7 @@ import (
 func main() {
 	fmt.Println("server is starting")
 	db.InitDB()
+
 	server := gin.Default()
 
 	routes.RegisterRoutes(server)

@@ -10,8 +10,8 @@ import (
 var DB *sql.DB
 
 func InitDB() {
-	var err error                           // Declare err separately to avoid shadowing DB
-	DB, err = sql.Open("sqlite3", "api.db") // Assign to global DB
+	var err error
+	DB, err = sql.Open("sqlite3", "api.db")
 
 	if err != nil {
 		log.Fatal("Could not connect to database:", err)
@@ -24,6 +24,18 @@ func InitDB() {
 }
 
 func CreateTable() {
+	createUserTable := `
+	CREATE TABLE IF NOT EXISTS users (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			email TEXT NOT NULL UNIQUE,
+			password TEXT NOT NULL
+	)
+	`
+	_, err := DB.Exec(createUserTable)
+
+	if err != nil {
+		panic("could create user table")
+	}
 	createEventsTable := `
 	CREATE TABLE IF NOT EXISTS events (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,11 +43,31 @@ func CreateTable() {
 		description TEXT NOT NULL,
 		location TEXT NOT NULL,
 		dateTime DATETIME NOT NULL,
-		user_id INTEGER
+		user_id INTEGER,
+		FOREIGN KEY(user_id) REFERENCES users(id)
 	);`
 
-	_, err := DB.Exec(createEventsTable)
+	_, err = DB.Exec(createEventsTable)
 	if err != nil {
 		log.Fatal("Could not create events table:", err)
+		panic("could not create events table")
+
+	}
+
+	createRegistrationTable := `
+	 CREATE TABLE IF NOT EXISTS registrations(
+	 id INTEGER PRIMARY KEY AUTOINCREMENT,
+	 event_id INTEGER,
+	 user_id  INTEGER, 
+	 FOREIGN KEY(event_id) REFERENCES events(id),
+	 FOREIGN KEY(user_id) REFERENCES users(id),
+	 )
+	`
+	_, err = DB.Exec(createRegistrationTable)
+
+	if err != nil {
+		log.Fatal("Could not create events table:", err)
+		panic("could not create registraion table")
+
 	}
 }
